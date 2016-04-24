@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html ng-app="mouse">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Computable Brain - Mouse</title>
+
+	<!--Imported libraries-->
+	<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script> 
+    <script type="text/javascript" src="bower_components/angular/angular.js"></script>
+	<script type="text/javascript" src="bower_components/webix/codebase/webix.js"></script>
+	<link rel="stylesheet" href="bower_components/webix/codebase/webix.css" type="text/css">
+	<script type="text/javascript" src="bower_components/openseadragon/built-openseadragon/openseadragon/openseadragon.js"></script> 
+
+	<script type="text/javascript" src="assets/js/openseadragon-fabricjs/openseadragon-fabricjs-overlay.js"></script> 
+	<script type="text/javascript" src="assets/js/openseadragon-fabricjs/fabricjs/fabricjs.min.js"></script> 
+
+	<!--Custom scripts-->
+	<link rel="stylesheet" href="assets/css/mouse.css" type="text/css">
+	<script src="app/app.module.js"></script>
+	<script src="app/app.constant.js"></script>
+	<script src="app/components/wsi/service.js"></script>
+	<script src="app/components/wsi/controller.js"></script>
+</head>
+
+<body>
+<div webix-ui type="space">
+	<div height="35" id="header">Computable Brain - Mouse</div>
+	<div view="tabview">
+		<div header="WSI Images" ng-controller="wsictrl">
+			<div webix-ui="config" webix-ready="init(root)"></div>
+		</div>
+		<div header="Crop Coord Image Grid">
+			2. Other content here
+		</div>
+		<div header="Slice Browser">
+			2. Other content here
+		</div>
+		<div header="Radiology Viewer">
+			2. Other content here
+		</div>
+		<div header="Radiology Viewer">
+			2. Other content here
+		</div>
+		
+	</div>
+</div>
+
+<div id="slice_viewer" style="width: 100%; height: 80%"></div>
+
+</body>
+</html>
