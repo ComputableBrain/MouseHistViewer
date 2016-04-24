@@ -24,6 +24,8 @@ app.controller("wsictrl", function($scope, $http, api, wsiui){
             $$('slice_gallery').clearCss("selected_thumbnail");
             this.addCss(id, "selected_thumbnail");
             filename = this.getItem(id).filename;
+            $scope.prevfilename = filename;
+
             date = this.getItem(id).date;
             url = api.url+":"+api.port+"/DZIMS/"+date+"/"+filename+".dzi";
             $scope.viewer.open(url);
@@ -132,7 +134,7 @@ app.controller("wsictrl", function($scope, $http, api, wsiui){
         $.ajax({
             url: api.url + ':' + api.port + '/api/v1/slides/annotations',
             type: 'POST',
-            data: {"slideId": 1, "annotations": JSON.stringify(boxes)}
+            data: {"slideId": $scope.prevfilename, "annotations": JSON.stringify(boxes)}
         })
     };
 

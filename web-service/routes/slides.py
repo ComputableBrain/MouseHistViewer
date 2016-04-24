@@ -41,11 +41,11 @@ def get_slides( id):
 @slides.route('/api/v1/slides/annotations', methods=['POST','OPTIONS'])
 @crossdomain(origin='*')
 def save_annotations():
-    slide_id = int(request.form['slideId'])
+    slide_id = request.form['slideId']
     annotations = json.loads(request.form['annotations'])
-    
-    slideset = []
-    return Response(json.dumps(slideset), mimetype='text/json', status=200)
+    update_values = {"$set": {"annotations": annotations},"$currentDate": {"lastModified": True}}
+    sdb[slides.config["slides_collection"]].update_one({"filename": slide_id}, update_values)
+    return Response(None, status=204)
 
 ##This will process and store files that were marked as bad...
 @slides.route('/api/v1/slides/<string:id>/report', methods=["POST"])
