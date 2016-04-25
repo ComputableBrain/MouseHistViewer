@@ -26,9 +26,13 @@ def _setup():
 def get_collections():
     slideset = []
 
-    cursor = sdb[slides.config["slides_collection"]].find({}, {'_id': False})
-    for slide in cursor:
-        slideset.append(slide)
+    try:
+        cursor = sdb[slides.config["slides_collection"]].find({}, {'_id': False, 'lastModified': False}).sort("width",-1)
+        for slide in cursor:
+            slideset.append(slide)
+    except pymongo.errors.OperationFailure:
+        print "caught error"
+        return Response(None, status=404)
 
     return Response(json.dumps(slideset), mimetype='text/json', status=200)
 
@@ -46,6 +50,17 @@ def save_annotations():
     update_values = {"$set": {"annotations": annotations},"$currentDate": {"lastModified": True}}
     sdb[slides.config["slides_collection"]].update_one({"filename": slide_id}, update_values)
     return Response(None, status=204)
+
+@slides.route('/api/v1/slides/<slide_id>/annotations', methods=['GET'])
+@crossdomain(origin='*')
+def load_annotations(slide_id):
+    slide = sdb[slides.config["slides_collection"]].find({"filename": slide_id}, {'annotations': True})
+    t = slide.next()
+    
+    if "annotations" not in t:
+        return Response(None, status=204)
+
+    return Response(json.dumps(t["annotations"]), mimetype='text/json', status=200)
 
 ##This will process and store files that were marked as bad...
 @slides.route('/api/v1/slides/<string:id>/report', methods=["POST"])

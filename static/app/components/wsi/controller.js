@@ -25,11 +25,12 @@ app.controller("wsictrl", function($scope, $http, api, wsiui){
             this.addCss(id, "selected_thumbnail");
             filename = this.getItem(id).filename;
             $scope.prevfilename = filename;
+            
 
             date = this.getItem(id).date;
             url = api.url+":"+api.port+"/DZIMS/"+date+"/"+filename+".dzi";
             $scope.viewer.open(url);
-            $scope.drawboxes();
+            $scope.loadboxes(filename);
             $scope.updatedimensions(this.getItem(id));
         });
 
@@ -68,25 +69,47 @@ app.controller("wsictrl", function($scope, $http, api, wsiui){
         $scope.drawboxes();
     };
 
-    $scope.drawboxes = function(){
+    $scope.drawboxes = function(annotations){
         //if the database is empty draw 6 random boxes
         this.overlay = $scope.viewer.fabricjsOverlay();  
         this.canvas = this.overlay.fabricCanvas(); 
         this.canvas.clear();
-            
-        for(var i=0; i < $scope.boxcolors.length; i++){                 
-            var rect = new fabric.Rect({
-                left: $scope.boxpos[i][0],
-                top: $scope.boxpos[i][1],
-                fill: 'transparent',
-                stroke: $scope.boxcolors[i],
-                strokeWidth: 300,
-                width: 10000,
-                height: 10000
-            }); 
-                        
-            this.canvas.add(rect);
+
+        if(annotations == null){
+            for(var i=0; i < $scope.boxcolors.length; i++){                 
+                var rect = new fabric.Rect({
+                    left: $scope.boxpos[i][0],
+                    top: $scope.boxpos[i][1],
+                    fill: 'transparent',
+                    stroke: $scope.boxcolors[i],
+                    strokeWidth: 300,
+                    width: 10000,
+                    height: 10000
+                }); 
+                            
+                this.canvas.add(rect);
+            }
         }
+        else{
+            console.log(annotations);
+            for(var i=0; i < annotations.length; i++){  
+                var box = annotations[i];               
+                var rect = new fabric.Rect({
+                    left: box.left,
+                    top: box.top,
+                    width: box.width + 10000,
+                    height: box.height  + 10000,
+                    stroke: box.color,
+                    fill: 'transparent',
+                    strokeWidth: 300
+                }); 
+                            
+                this.canvas.add(rect);
+            }
+
+        }
+
+        this.canvas.renderAll();
     };
     
     $scope.groupboxes = function(){
@@ -108,7 +131,7 @@ app.controller("wsictrl", function($scope, $http, api, wsiui){
     };
 
     $scope.ungroupboxes = function(){
-        if(this.canvas.getObjects().length == 6)
+        if(this.canvas.getObjects().length == 6 || this.group == null)
             return;
 
         var boxes = this.group._objects;
@@ -127,14 +150,39 @@ app.controller("wsictrl", function($scope, $http, api, wsiui){
         var tmp = null;
         $scope.ungroupboxes();
 
+        this.canvas.calcOffset();
+
         for(var i = 0; i < 6; i++) {
-            boxes.push(this.canvas.item(i).oCoords);
+            this.canvas.item(i).setCoords();
+            var rect = this.canvas.item(i).getBoundingRect();
+            rect.color = $scope.boxcolors[i];
+            console.log("save rect");
+            console.log(rect);
+            boxes.push(rect);
         }
 
+        console.log("saving " + $scope.prevfilename);
         $.ajax({
             url: api.url + ':' + api.port + '/api/v1/slides/annotations',
             type: 'POST',
             data: {"slideId": $scope.prevfilename, "annotations": JSON.stringify(boxes)}
+        })
+    };
+
+    $scope.loadboxes = function(slideid){
+        $.ajax({
+            url: api.url + ':' + api.port + '/api/v1/slides/'+ slideid +'/annotations',
+            type: 'GET',
+            success: function(annotations, textStatus, xhr){
+                if(xhr.status == 200){
+                    console.log("loading " + slideid);
+                    $scope.drawboxes(annotations);
+                }
+                else{
+                    console.log(xhr.status);
+                    $scope.drawboxes(null);
+                }
+            }
         })
     };
 
